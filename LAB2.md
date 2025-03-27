@@ -52,6 +52,76 @@ Before you start this lab, you should know the concepts in [ROS tutorials](https
         sudo apt update
         sudo apt install ros-humble-teleop-twist-keyboard
         ```
+### ROS Docker Image Setup
+1. **Install Docker**  
+    - Verify Docker installation:  
+        ```bash
+        docker --version
+        ```
+    - If not installed, follow the [Docker Installation Guide](https://docs.docker.com/engine/install/ubuntu/#install-using-the-repository)
+
+2. **Setup ROS2 Docker Container**  
+    - Pull the Docker image:  
+        - Pull the Docker image:  
+            ```bash
+            docker pull laurentiupopa/ros2-efac:ros2
+            ```
+        - See downloaded images:  
+            ```bash
+            docker image ls
+            ```
+            You should see:
+            ```
+            REPOSITORY                TAG  
+            laurentiupopa/ros2-efac   ros2
+            ```   
+    - Enable display for Docker:  
+        ```bash
+        xhost local:root
+        ```
+    - Run the container with required privileges:  
+        ```bash
+        docker run -it --privileged --network=host -e DISPLAY=$DISPLAY \
+        -v /tmp/.X11-unix:/tmp/.X11-unix:ro laurentiupopa/ros2-efac:ros2
+        ```
+        > Note: Privileges enable hardware access, networking, and display sharing
+    - Exit the container with 'CTRL+D' or by typing 'exit' in the terminal
+
+3. **Container Management**  
+
+    - List containers:  
+        ```bash
+        docker ps -a
+        ```
+        You should see:
+        ```
+        CONTAINER ID     IMAGE                         ...   NAMES
+        <container_id>   laurentiupopa/ros2-efac:ros2  ...   <container_name>
+        ```
+    - Rename container for easier reference:  
+        ```bash
+        docker rename <container_name> humble
+        ```
+    - Start and access container:  
+        ```bash
+        docker start humble
+        docker exec -it humble bash
+        ```
+
+4. **Verify ROS2 Setup**  
+    - Source ROS2 environment:  
+        ```bash
+        source /opt/ros/humble/setup.bash
+        ```
+    - Check installation:  
+        ```bash
+        ros2 pkg list | grep teleop_twist_keyboard
+        ```
+    - Verify workspace:  
+        ```bash
+        cd ~
+        ls  # Should see ros_ws directory
+        ```
 
 ## TODO
 
