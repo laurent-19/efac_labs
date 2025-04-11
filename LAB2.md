@@ -60,34 +60,52 @@ Before you start this lab, you should know the concepts in [ROS tutorials](https
         ```
     - If not installed, follow the [Docker Installation Guide](https://docs.docker.com/engine/install/ubuntu/#install-using-the-repository)
 
-2. **Setup ROS2 Docker Container**  
-    - Pull the Docker image:  
-        - Pull the Docker image:  
-            ```bash
-            docker pull laurentiupopa/ros2-efac:ros2
-            ```
-        - See downloaded images:  
-            ```bash
-            docker image ls
-            ```
-            You should see:
-            ```
-            REPOSITORY                TAG  
-            laurentiupopa/ros2-efac   ros2
-            ```   
-    - Enable display for Docker:  
-        ```bash
-        xhost local:root
-        ```
-    - Run the container with required privileges:  
-        ```bash
-        docker run -it --privileged --network=host -e DISPLAY=$DISPLAY \
-        -v /tmp/.X11-unix:/tmp/.X11-unix:ro laurentiupopa/ros2-efac:ros2
-        ```
-        > Note: Privileges enable hardware access, networking, and display sharing
-    - Exit the container with 'CTRL+D' or by typing 'exit' in the terminal
+2. **Setup Docker Image**
+- Pull the Docker image:  
+    ```bash
+    docker pull laurentiupopa/ros2-efac:ros2
+    ```
+    > **Note:** If you have permission issues, setup Docker permissions:
+    > ```bash
+    > # Add Docker group if it doesn't exist
+    > sudo groupadd docker
+    > # Add your user to Docker group
+    > sudo usermod -aG docker $USER
+    > # Apply changes (logout/login or run)
+    > newgrp docker
+    > ```
+    
+    > If $USER is not sudo user, add it with:
+    > ```bash 
+    > sudo adduser $USER sudo
+    > ```
+    >  If permission issues persist, try logging out and back in for group changes to take effect.
+
+- Verify downloaded images:  
+    ```bash
+    docker image ls
+    ```
+    You should see:
+    ```
+    REPOSITORY                TAG  
+    laurentiupopa/ros2-efac   ros2
+    ```   
+- Enable display for Docker:  
+    ```bash
+    xhost local:root
+    ```
+- Run the container with required privileges:  
+    ```bash
+    docker run -it --privileged --network=host -e DISPLAY=$DISPLAY \
+    -v /tmp/.X11-unix:/tmp/.X11-unix:ro laurentiupopa/ros2-efac:ros2
+    ```
+    > Note: Privileges enable hardware access, networking, and display sharing
+
+- You will enter the container's shell, indicated by prompt `root@<device_username>:/#`
+- Type `exit` or press CTRL+D to leave the container shell
 
 3. **Container Management**  
+    - Make sure you are outside the container (had pressed `exit` or CTRL+D).
 
     - List containers:  
         ```bash
@@ -122,6 +140,25 @@ Before you start this lab, you should know the concepts in [ROS tutorials](https
         cd ~
         ls  # Should see ros_ws directory
         ```
+5. **Test ROS2 Nodes in Docker Containers**
+    - Open first terminal and access container:
+        ```bash
+        docker exec -it humble bash
+        ```
+        ```bash
+        source /opt/ros/humble/setup.bash
+        ros2 run demo_nodes_cpp talker
+        ```
+    - Open second terminal and access container:
+        ```bash
+        docker exec -it humble bash
+        ```
+        ```bash
+        source /opt/ros/humble/setup.bash
+        ros2 run demo_nodes_cpp listener
+        ```
+    - Verify that messages are being exchanged between nodes
+    - Use CTRL+C in each terminal to stop the nodes
 
 ## TODO
 
@@ -135,7 +172,9 @@ Before you start this lab, you should know the concepts in [ROS tutorials](https
 2. **Launch the Stage Simulator**  
     - Navigate to the workspace and start the simulation:  
         ```bash
-        cd ~/ros2_ws
+        cd ~/ros_ws
+        ```
+        ```bash
         source install/setup.bash
         ros2 launch stage_ros2 demo.launch.py world:=cave
         ```
@@ -144,16 +183,33 @@ Before you start this lab, you should know the concepts in [ROS tutorials](https
 
 
 3. **Control the Robot**  
-    - In a new terminal, open the teleop keyboard to control the robot:  
+    - In a **new terminal**, open the teleop keyboard to control the robot:  
         ```bash
         source /opt/ros/humble/setup.bash
         ros2 run teleop_twist_keyboard teleop_twist_keyboard
         ```
 
 4. **Monitor Topics**  
-    - Use the following command to list active topics:  
+    - Open another **new terminal**, use the following command to list active topics:  
         ```bash
+        source /opt/ros/humble/setup.bash
         ros2 topic list
+        ```
+        You should see a list of topics similar to this:
+        ```
+        /base_scan      # Laser scan data
+        /cmd_vel        # Robot velocity commands
+        /odom           # Robot odometry
+        /tf             # Transform frames
+        ...
+        ```
+    - To check a topic's message type:
+        ```bash
+        ros2 topic info <topic_name>
+        ```
+    - To view the data being published:
+        ```bash
+        ros2 topic echo <topic_name>
         ```
 
 #### Additional Resources
@@ -165,7 +221,7 @@ Before you start this lab, you should know the concepts in [ROS tutorials](https
 1. **Create a New ROS2 Package**  
     - Navigate to your ROS2 workspace's `src` directory:  
       ```bash
-      cd ~/ros2_ws/src
+      cd ~/ros_ws/src
       ```
     - Create a new package named `wander` with the required dependencies (`rclpy`, `geometry_msgs`, and `sensor_msgs`):  
       ```bash
@@ -173,10 +229,13 @@ Before you start this lab, you should know the concepts in [ROS tutorials](https
       ```
     - Ensure the package is in your ROS2 workspace by building the workspace:  
       ```bash
-      cd ~/ros2_ws
+      cd ~/ros_ws
+      ```
+      ```bash
       colcon build --packages-select wander
       source install/setup.bash
       ```
+      >**Note:** Make sure you are in the root of the ros workpace dir **(~/ros_ws/)** when building! 
 
 2. **Write a Node to Drive the Robot Forward**  
     - Create a new Python file (e.g., `forward_move.py`) in the `wander/wander` directory. Here's an example to get you started:
@@ -228,7 +287,9 @@ Before you start this lab, you should know the concepts in [ROS tutorials](https
       ```
     - Build the package:
       ```bash
-      cd ~/ros2_ws
+      cd ~/ros_ws
+      ```
+      ```bash
       colcon build --packages-select wander
       source install/setup.bash
       ```
