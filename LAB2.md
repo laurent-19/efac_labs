@@ -9,6 +9,61 @@ The goal of this lab is:
 ## Preliminaries
 Before you start this lab, you should know the concepts in [ROS tutorials](https://docs.ros.org/en/humble/Tutorials.html).
 
+### Pixi Setup (Recommended)
+
+Pixi provides a fast, cross-platform way to set up ROS2 without virtualization or containers.
+
+1. **Install Pixi**
+   
+   In a terminal window, run:
+   ```bash
+   curl -fsSL https://pixi.sh/install.sh | sh
+   ```
+   
+   Close and reopen the terminal, or run:
+   ```bash
+   source ~/.bashrc  # or ~/.zshrc for zsh users
+   ```
+
+2. **Create a Pixi Workspace**
+   ```bash
+   mkdir ~/pixiws && cd ~/pixiws
+   pixi init -c robostack-humble -c conda-forge
+   ```
+
+3. **Add ROS2 Packages**
+   ```bash
+   pixi add ros-humble-desktop ros-humble-teleop-twist-keyboard
+   ```
+
+4. **Activate the Environment**
+   ```bash
+   pixi shell
+   ```
+   Your prompt will change to indicate you're in the Pixi environment.
+
+5. **Verify ROS2 Installation**
+   ```bash
+   which ros2
+   ros2 pkg list | grep teleop_twist_keyboard
+   ```
+
+6. **Test ROS2 Communication**
+   - In one terminal (inside `pixi shell`):
+     ```bash
+     ros2 run demo_nodes_cpp talker
+     ```
+   - In another terminal, navigate to the workspace, enter the shell, and run:
+     ```bash
+     cd ~/pixiws && pixi shell
+     ros2 run demo_nodes_cpp listener
+     ```
+   - Verify messages are being exchanged, then use CTRL+C to stop.
+
+> **Note:** Always run `pixi shell` from your workspace directory (`~/pixiws`) before using ROS2 commands.
+
+---
+
 ### ROS-VM Setup Instructions
 1. **Download VirtualBox and ROS2 Ubuntu image**  
     - Download and install Oracle VirtualBox from [VirtualBox Downloads](https://www.virtualbox.org/wiki/Downloads).
