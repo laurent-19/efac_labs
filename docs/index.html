@@ -28,18 +28,11 @@
     </nav>
 
     <main class="container">
-        <!-- Table of Contents -->
         <section id="toc">
             <h2>Table of Contents</h2>
             <ul class="toc-list">
                 <li><a href="#overview">Overview</a></li>
-                <li><a href="#setup">ROS2 Environment Setup</a>
-                    <ul>
-                        <li><a href="#setup-pixi">Option 1: Pixi (Recommended)</a></li>
-                        <li><a href="#setup-docker">Option 2: Docker</a></li>
-                        <li><a href="#setup-vm">Option 3: Virtual Machine</a></li>
-                    </ul>
-                </li>
+                <li><a href="#setup">Prepare Software on Your Computer</a></li>
                 <li><a href="#lab1">Lab 1: Introduction to Tools and Frameworks</a></li>
                 <li><a href="#lab2">Lab 2: Mobile Robot Navigation</a></li>
                 <li><a href="#lab3">Lab 3: Object Tracking with Computer Vision</a></li>
@@ -62,11 +55,11 @@
             <div class="resources-grid">
                 <a href="https://docs.ros.org/en/humble/index.html" class="resource-card">
                     <strong>ROS2 Humble</strong>
-                    <span>Official ROS2 documentation</span>
+                    <span>Official documentation</span>
                 </a>
                 <a href="https://docs.ros.org/en/humble/Tutorials.html" class="resource-card">
                     <strong>ROS2 Tutorials</strong>
-                    <span>Beginner to advanced tutorials</span>
+                    <span>Beginner to advanced</span>
                 </a>
                 <a href="https://ubuntu.com/tutorials/command-line-for-beginners" class="resource-card">
                     <strong>Linux/Ubuntu</strong>
@@ -74,202 +67,226 @@
                 </a>
                 <a href="https://cmake.org/" class="resource-card">
                     <strong>CMake</strong>
-                    <span>Build system documentation</span>
+                    <span>Build system docs</span>
                 </a>
             </div>
         </section>
 
         <section id="setup">
-            <h2>ROS2 Environment Setup</h2>
-            <p>Choose one of the following methods to set up your ROS2 development environment.</p>
+            <h2>Prepare Software on Your Computer</h2>
+            <p>Choose one of the following methods to set up your ROS2 development environment:</p>
 
-            <!-- Setup Option 1: Pixi -->
-            <div id="setup-pixi" class="setup-section">
-                <h3>Option 1: Pixi (Recommended)</h3>
-                <p>Our recommended mechanism is to use <a href="https://pixi.prefix.dev/latest/">Pixi</a>. Pixi provides a fast, cross-platform way to set up ROS2 without virtualization or containers.</p>
+            <div class="tab-container" data-tab-group="setup-method">
+                <div class="tab-buttons">
+                    <button class="tab-btn active" data-tab="pixi">Pixi + RoboStack</button>
+                    <button class="tab-btn" data-tab="pixi-docker">Pixi + Docker</button>
+                    <button class="tab-btn" data-tab="vm">Virtual Machine</button>
+                </div>
 
-                <h4>Step 1: Install Pixi</h4>
-                <p>Follow the <a href="https://pixi.prefix.dev/latest/installation/">Pixi installation guide</a>:</p>
+                <!-- Pixi + RoboStack Setup -->
+                <div class="tab-content active" data-tab="pixi">
+                    <p>Native ROS2 installation using <a href="https://pixi.prefix.dev/latest/">Pixi</a> and <a href="https://robostack.github.io/">RoboStack</a>. Best for <strong>Linux and macOS</strong>.</p>
 
-                <div class="tab-container" data-tab-group="os-pixi">
-                    <div class="tab-buttons">
-                        <button class="tab-btn active" data-tab="linux">Linux & macOS</button>
-                        <button class="tab-btn" data-tab="windows">Windows</button>
+                    <div class="note">
+                        <strong>Windows users:</strong> Use the <strong>Pixi + Docker</strong> tab instead for better compatibility.
                     </div>
-                    <div class="tab-content active" data-tab="linux">
-                        <p>In a terminal window, run:</p>
-                        <div class="code-block">
-                            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
-                            <pre><code>curl -fsSL https://pixi.sh/install.sh | sh</code></pre>
+
+                    <p>First install Pixi:</p>
+
+                    <div class="tab-container nested" data-tab-group="pixi-os">
+                        <div class="tab-buttons">
+                            <button class="tab-btn active" data-tab="linux">Linux & macOS</button>
+                            <button class="tab-btn" data-tab="windows">Windows</button>
                         </div>
-                        <p>Close and reopen the terminal window, or run <code>source ~/.bashrc</code> (or the rc of your shell of choice).</p>
-                    </div>
-                    <div class="tab-content" data-tab="windows">
-                        <p>In a PowerShell window, run:</p>
-                        <div class="code-block">
-                            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
-                            <pre><code>powershell -ExecutionPolicy Bypass -c "irm -useb https://pixi.sh/install.ps1 | iex"</code></pre>
+                        <div class="tab-content active" data-tab="linux">
+                            <p>In a terminal window, run:</p>
+                            <div class="code-block">
+                                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                                <pre><code>curl -fsSL https://pixi.sh/install.sh | sh</code></pre>
+                            </div>
+                            <p>Close and reopen the terminal window, or run <code>source ~/.bashrc</code> (or the rc of your shell of choice).</p>
                         </div>
-                        <p>Close and reopen the PowerShell window.</p>
-                    </div>
-                </div>
-
-                <h4>Step 2: Create a Pixi Workspace</h4>
-                <div class="code-block">
-                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
-                    <pre><code>mkdir ~/pixiws && cd ~/pixiws
-pixi init -c robostack-humble -c conda-forge
-pixi add ros-humble-desktop ros-humble-teleop-twist-keyboard</code></pre>
-                </div>
-
-                <h4>Step 3: Activate and Verify</h4>
-                <div class="code-block">
-                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
-                    <pre><code>pixi shell
-ros2 pkg list | grep teleop</code></pre>
-                </div>
-
-                <div class="note">
-                    <strong>Note:</strong> Always run <code>pixi shell</code> from your workspace directory (<code>~/pixiws</code>) before using ROS2 commands.
-                </div>
-
-                <h4>Step 4: Test ROS2 Communication</h4>
-                <p>Open two terminals and verify ROS2 is working:</p>
-
-                <div class="tab-container" data-tab-group="test-pixi">
-                    <div class="tab-buttons">
-                        <button class="tab-btn active" data-tab="term1">Terminal 1</button>
-                        <button class="tab-btn" data-tab="term2">Terminal 2</button>
-                    </div>
-                    <div class="tab-content active" data-tab="term1">
-                        <div class="code-block">
-                            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
-                            <pre><code>cd ~/pixiws && pixi shell
-ros2 run demo_nodes_cpp talker</code></pre>
+                        <div class="tab-content" data-tab="windows">
+                            <p>In a PowerShell window, run:</p>
+                            <div class="code-block">
+                                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                                <pre><code>powershell -ExecutionPolicy Bypass -c "irm -useb https://pixi.sh/install.ps1 | iex"</code></pre>
+                            </div>
+                            <p>Close and reopen the PowerShell window.</p>
                         </div>
                     </div>
-                    <div class="tab-content" data-tab="term2">
-                        <div class="code-block">
-                            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
-                            <pre><code>cd ~/pixiws && pixi shell
-ros2 run demo_nodes_cpp listener</code></pre>
-                        </div>
-                    </div>
-                </div>
-                <p>Verify messages are being exchanged, then use <kbd>Ctrl+C</kbd> to stop.</p>
-            </div>
 
-            <!-- Setup Option 2: Docker -->
-            <div id="setup-docker" class="setup-section">
-                <h3>Option 2: Docker</h3>
-                <p>Containerized environment with pre-configured packages.</p>
-
-                <h4>Step 1: Install Docker</h4>
-                <p>Verify Docker installation:</p>
-                <div class="code-block">
-                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
-                    <pre><code>docker --version</code></pre>
-                </div>
-                <p>If not installed, follow the <a href="https://docs.docker.com/engine/install/">Docker Installation Guide</a>.</p>
-
-                <h4>Step 2: Pull and Run the Image</h4>
-                <div class="code-block">
-                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
-                    <pre><code>docker pull laurentiupopa/ros2-efac:ros2</code></pre>
-                </div>
-
-                <div class="note">
-                    <strong>Note:</strong> If you have permission issues, set up Docker permissions:
+                    <p>Then create a Pixi workspace:</p>
                     <div class="code-block">
                         <button class="copy-btn" onclick="copyCode(this)">Copy</button>
-                        <pre><code>sudo groupadd docker
-sudo usermod -aG docker $USER
-newgrp docker</code></pre>
+                        <pre><code>mkdir pixiws && cd pixiws
+pixi init -c robostack-humble -c conda-forge
+pixi add ros-humble-desktop ros-humble-teleop-twist-keyboard</code></pre>
+                    </div>
+
+                    <p>Activate the environment and verify:</p>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                        <pre><code>pixi shell
+ros2 pkg list | grep teleop</code></pre>
+                    </div>
+
+                    <div class="note">
+                        <strong>Note:</strong> Always run <code>pixi shell</code> from your workspace directory before using ROS2 commands.
                     </div>
                 </div>
 
-                <h4>Step 3: Run the Container</h4>
-                <div class="tab-container" data-tab-group="docker-run">
-                    <div class="tab-buttons">
-                        <button class="tab-btn active" data-tab="linux">Linux</button>
-                        <button class="tab-btn" data-tab="wsl">Windows (WSL2)</button>
-                    </div>
-                    <div class="tab-content active" data-tab="linux">
-                        <div class="code-block">
-                            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
-                            <pre><code>xhost local:root
-docker run -it --privileged --network=host \
-  -e DISPLAY=$DISPLAY \
-  -v /tmp/.X11-unix:/tmp/.X11-unix:ro \
-  laurentiupopa/ros2-efac:ros2</code></pre>
+                <!-- Pixi + Docker Setup -->
+                <div class="tab-content" data-tab="pixi-docker">
+                    <p>Use Pixi to manage a Docker-based ROS2 environment. Best for <strong>Windows users</strong> or when native RoboStack isn't available.</p>
+
+                    <h4>1. Install Pixi</h4>
+                    <div class="tab-container nested" data-tab-group="pixi-docker-os">
+                        <div class="tab-buttons">
+                            <button class="tab-btn active" data-tab="linux">Linux & macOS</button>
+                            <button class="tab-btn" data-tab="windows">Windows</button>
+                        </div>
+                        <div class="tab-content active" data-tab="linux">
+                            <div class="code-block">
+                                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                                <pre><code>curl -fsSL https://pixi.sh/install.sh | sh</code></pre>
+                            </div>
+                            <p>Close and reopen the terminal, or run <code>source ~/.bashrc</code>.</p>
+                        </div>
+                        <div class="tab-content" data-tab="windows">
+                            <div class="code-block">
+                                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                                <pre><code>powershell -ExecutionPolicy Bypass -c "irm -useb https://pixi.sh/install.ps1 | iex"</code></pre>
+                            </div>
+                            <p>Close and reopen PowerShell.</p>
                         </div>
                     </div>
-                    <div class="tab-content" data-tab="wsl">
-                        <div class="code-block">
-                            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
-                            <pre><code>docker run -it --privileged --network=host \
-  laurentiupopa/ros2-efac:ros2</code></pre>
-                        </div>
+
+                    <h4>2. Install Docker</h4>
+                    <ul>
+                        <li><strong>Windows:</strong> Install <a href="https://docs.docker.com/desktop/install/windows-install/">Docker Desktop</a></li>
+                        <li><strong>Linux:</strong> Follow the <a href="https://docs.docker.com/engine/install/">Docker Engine guide</a></li>
+                        <li><strong>macOS:</strong> Install <a href="https://docs.docker.com/desktop/install/mac-install/">Docker Desktop</a></li>
+                    </ul>
+
+                    <h4>3. Create Pixi Workspace with Docker Tasks</h4>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                        <pre><code>mkdir pixiws && cd pixiws
+pixi init</code></pre>
+                    </div>
+
+                    <p>Add Docker tasks to <code>pixi.toml</code>:</p>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                        <pre><code>[tasks]
+pull = "docker pull laurentiupopa/ros2-efac:ros2"
+start = "docker start humble || docker run -dit --name humble --privileged --network=host laurentiupopa/ros2-efac:ros2"
+shell = { cmd = "docker exec -it humble bash", depends-on = ["start"] }
+stop = "docker stop humble"</code></pre>
+                    </div>
+
+                    <h4>4. Use the Workspace</h4>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                        <pre><code>pixi run pull
+pixi run shell</code></pre>
+                    </div>
+
+                    <p>Inside the container:</p>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                        <pre><code>source /opt/ros/humble/setup.bash
+ros2 run demo_nodes_cpp talker</code></pre>
+                    </div>
+
+                    <div class="note">
+                        <strong>Note:</strong> Use <code>pixi run shell</code> to enter the container. The container persists between sessions.
                     </div>
                 </div>
 
-                <h4>Step 4: Container Management</h4>
-                <p>After exiting the container (<code>exit</code> or <kbd>Ctrl+D</kbd>), rename and manage it:</p>
-                <div class="code-block">
-                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
-                    <pre><code>docker ps -a
-docker rename &lt;container_name&gt; humble
-docker start humble
-docker exec -it humble bash</code></pre>
-                </div>
+                <!-- VM Setup -->
+                <div class="tab-content" data-tab="vm">
+                    <p>Use a pre-configured Ubuntu 22.04 VM with ROS2 Humble.</p>
 
-                <h4>Step 5: Verify ROS2 Setup</h4>
-                <div class="code-block">
-                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
-                    <pre><code>source /opt/ros/humble/setup.bash
-ros2 pkg list | grep teleop_twist_keyboard</code></pre>
+                    <h4>1. Download</h4>
+                    <ol>
+                        <li>Install <a href="https://www.virtualbox.org/wiki/Downloads">Oracle VirtualBox</a></li>
+                        <li>Download the <a href="https://drive.google.com/uc?export=download&id=1VI4HPSwS0SAeqr2DJljcJwEwZ6_M3Szi">.ova image file</a></li>
+                    </ol>
+
+                    <h4>2. Import the VM</h4>
+                    <ol>
+                        <li>Open VirtualBox → <strong>File → Import Appliance</strong></li>
+                        <li>Select the <code>.ova</code> file</li>
+                        <li>Set <strong>2 CPUs</strong> and <strong>4096MB RAM</strong></li>
+                        <li>Click <strong>Finish</strong></li>
+                    </ol>
+
+                    <h4>3. Login Credentials</h4>
+                    <table class="info-table">
+                        <tr><td>Username:</td><td><code>arvr-ros2</code></td></tr>
+                        <tr><td>Password:</td><td><code>arvr</code></td></tr>
+                    </table>
                 </div>
             </div>
 
-            <!-- Setup Option 3: VM -->
-            <div id="setup-vm" class="setup-section">
-                <h3>Option 3: Virtual Machine</h3>
-                <p>Pre-configured Ubuntu 22.04 VM with ROS2 Humble.</p>
+            <h3>Verify ROS2 Installation</h3>
+            <p>Test that ROS2 is working by running the talker/listener demo in two terminals:</p>
 
-                <h4>Step 1: Download</h4>
-                <ol>
-                    <li>Download and install <a href="https://www.virtualbox.org/wiki/Downloads">Oracle VirtualBox</a></li>
-                    <li>Download the <a href="https://drive.google.com/uc?export=download&id=1VI4HPSwS0SAeqr2DJljcJwEwZ6_M3Szi">.ova image file</a></li>
-                </ol>
-
-                <h4>Step 2: Import the Virtual Machine</h4>
-                <ol>
-                    <li>Open VirtualBox</li>
-                    <li>Go to <strong>File → Import Appliance</strong></li>
-                    <li>Select the <code>.ova</code> file you downloaded</li>
-                    <li>Configure: <strong>2 CPUs</strong> and <strong>4096MB RAM</strong></li>
-                    <li>Click <strong>Finish</strong> to complete the import</li>
-                </ol>
-                <figure>
-                    <img src="assets/images/app_settings.png" alt="VirtualBox Appliance Settings" style="max-width: 500px;">
-                    <figcaption>VirtualBox appliance settings</figcaption>
-                </figure>
-
-                <h4>Step 3: Login</h4>
-                <table class="info-table">
-                    <tr><td><strong>Username:</strong></td><td><code>arvr-ros2</code></td></tr>
-                    <tr><td><strong>Password:</strong></td><td><code>arvr</code></td></tr>
-                </table>
-
-                <h4>Step 4: Verify the Setup</h4>
-                <div class="code-block">
-                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
-                    <pre><code>lsb_release -a
+            <div class="tab-container" data-tab-group="verify-method">
+                <div class="tab-buttons">
+                    <button class="tab-btn active" data-tab="robostack">Pixi + RoboStack</button>
+                    <button class="tab-btn" data-tab="docker">Pixi + Docker</button>
+                </div>
+                <div class="tab-content active" data-tab="robostack">
+                    <div class="tab-container nested" data-tab-group="verify-robo">
+                        <div class="tab-buttons">
+                            <button class="tab-btn active" data-tab="t1">Terminal 1</button>
+                            <button class="tab-btn" data-tab="t2">Terminal 2</button>
+                        </div>
+                        <div class="tab-content active" data-tab="t1">
+                            <div class="code-block">
+                                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                                <pre><code>cd ~/pixiws && pixi shell
+ros2 run demo_nodes_cpp talker</code></pre>
+                            </div>
+                        </div>
+                        <div class="tab-content" data-tab="t2">
+                            <div class="code-block">
+                                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                                <pre><code>cd ~/pixiws && pixi shell
+ros2 run demo_nodes_cpp listener</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="tab-content" data-tab="docker">
+                    <div class="tab-container nested" data-tab-group="verify-docker">
+                        <div class="tab-buttons">
+                            <button class="tab-btn active" data-tab="t1">Terminal 1</button>
+                            <button class="tab-btn" data-tab="t2">Terminal 2</button>
+                        </div>
+                        <div class="tab-content active" data-tab="t1">
+                            <div class="code-block">
+                                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                                <pre><code>cd ~/pixiws && pixi run shell
 source /opt/ros/humble/setup.bash
-which ros2
-ros2 pkg list | grep teleop_twist_keyboard</code></pre>
+ros2 run demo_nodes_cpp talker</code></pre>
+                            </div>
+                        </div>
+                        <div class="tab-content" data-tab="t2">
+                            <div class="code-block">
+                                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                                <pre><code>docker exec -it humble bash
+source /opt/ros/humble/setup.bash
+ros2 run demo_nodes_cpp listener</code></pre>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
+            <p>Verify messages are exchanged, then press <kbd>Ctrl+C</kbd> to stop.</p>
         </section>
 
         <!-- Lab 1 -->
@@ -288,39 +305,17 @@ ros2 pkg list | grep teleop_twist_keyboard</code></pre>
             <h3>Tasks</h3>
 
             <h4>1. Environment Setup</h4>
-            <p>Choose and configure one of the ROS2 setup methods from the <a href="#setup">Setup section</a>.</p>
+            <p>Complete the <a href="#setup">Setup section</a> above.</p>
 
             <h4>2. Complete ROS2 Tutorials</h4>
-            <p>Complete the <a href="https://docs.ros.org/en/humble/Tutorials/Beginner-CLI-Tools.html">Beginner CLI Tools</a> tutorials:</p>
+            <p>Work through the <a href="https://docs.ros.org/en/humble/Tutorials/Beginner-CLI-Tools.html">Beginner CLI Tools</a>:</p>
             <ul>
                 <li>Configuring environment</li>
                 <li>Using turtlesim and rqt</li>
                 <li>Understanding nodes, topics, services, parameters, and actions</li>
             </ul>
 
-            <h4>3. Test Your Setup</h4>
-            <p>Run the talker/listener demo to verify your installation:</p>
-
-            <div class="tab-container" data-tab-group="lab1-test">
-                <div class="tab-buttons">
-                    <button class="tab-btn active" data-tab="term1">Terminal 1</button>
-                    <button class="tab-btn" data-tab="term2">Terminal 2</button>
-                </div>
-                <div class="tab-content active" data-tab="term1">
-                    <div class="code-block">
-                        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
-                        <pre><code>ros2 run demo_nodes_cpp talker</code></pre>
-                    </div>
-                </div>
-                <div class="tab-content" data-tab="term2">
-                    <div class="code-block">
-                        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
-                        <pre><code>ros2 run demo_nodes_cpp listener</code></pre>
-                    </div>
-                </div>
-            </div>
-
-            <h4>4. Explore ROS2 Tools</h4>
+            <h4>3. Explore ROS2 Tools</h4>
             <div class="code-block">
                 <button class="copy-btn" onclick="copyCode(this)">Copy</button>
                 <pre><code>ros2 node list
@@ -338,7 +333,7 @@ ros2 topic echo /chatter</code></pre>
                 <h3>Objectives</h3>
                 <ul>
                     <li>Control a simulated robot using ROS2</li>
-                    <li>Create custom control strategies for mobile robots</li>
+                    <li>Create custom control strategies</li>
                     <li>Test code in simulation and on real robots</li>
                 </ul>
             </div>
@@ -363,7 +358,6 @@ ros2 launch stage_ros2 demo.launch.py world:=cave</code></pre>
                 <button class="copy-btn" onclick="copyCode(this)">Copy</button>
                 <pre><code>ros2 run teleop_twist_keyboard teleop_twist_keyboard</code></pre>
             </div>
-            <p>Use keyboard controls to move the robot around the environment.</p>
 
             <h4>3. Create a Custom Package</h4>
             <div class="code-block">
@@ -393,21 +387,19 @@ class ForwardNode(Node):
 
     def publish_velocity(self):
         msg = Twist()
-        msg.linear.x = 0.5  # Move forward
+        msg.linear.x = 0.5
         self.publisher_.publish(msg)
 
 def main(args=None):
     rclpy.init(args=args)
-    node = ForwardNode()
-    rclpy.spin(node)
-    node.destroy_node()
+    rclpy.spin(ForwardNode())
     rclpy.shutdown()
 
 if __name__ == '__main__':
     main()</code></pre>
             </div>
 
-            <p>Update <code>setup.py</code> to include your node:</p>
+            <p>Update <code>setup.py</code>:</p>
             <div class="code-block">
                 <button class="copy-btn" onclick="copyCode(this)">Copy</button>
                 <pre><code>entry_points={
@@ -439,34 +431,24 @@ class AvoidNode(Node):
     def __init__(self):
         super().__init__('avoid_node')
         self.publisher_ = self.create_publisher(Twist, 'cmd_vel', 10)
-        self.subscription = self.create_subscription(
-            LaserScan, 'base_scan', self.scan_callback, 10)
+        self.create_subscription(LaserScan, 'base_scan', self.scan_callback, 10)
 
     def scan_callback(self, msg):
-        # Check front distance (middle of ranges array)
         front_dist = msg.ranges[len(msg.ranges)//2]
-
         cmd = Twist()
-        if front_dist < 0.5:  # Obstacle within 50cm
-            cmd.angular.z = 0.5  # Turn
+        if front_dist < 0.5:
+            cmd.angular.z = 0.5
         else:
-            cmd.linear.x = 0.3  # Move forward
-
+            cmd.linear.x = 0.3
         self.publisher_.publish(cmd)
 
 def main(args=None):
     rclpy.init(args=args)
-    node = AvoidNode()
-    rclpy.spin(node)
-    node.destroy_node()
+    rclpy.spin(AvoidNode())
     rclpy.shutdown()
 
 if __name__ == '__main__':
     main()</code></pre>
-            </div>
-
-            <div class="note">
-                <strong>Note:</strong> The <code>LaserScan</code> message <code>ranges</code> array contains distance measurements. Each index corresponds to a specific angle. See <a href="https://docs.ros.org/en/api/sensor_msgs/html/msg/LaserScan.html">LaserScan documentation</a>.
             </div>
 
             <p class="lab-link"><a href="https://github.com/laurent-19/efac_labs/blob/main/LAB2.md">Full Lab 2 Documentation →</a></p>
@@ -485,19 +467,9 @@ if __name__ == '__main__':
                 </ul>
             </div>
 
-            <h3>Overview</h3>
-            <p>This lab uses the <strong>TagFollower ROS2</strong> package to track visual tags from a drone's camera. The system:</p>
-            <ul>
-                <li>Subscribes to drone navigation data and camera images</li>
-                <li>Processes images to detect tags using OpenCV</li>
-                <li>Uses Kalman filtering for smooth tracking predictions</li>
-                <li>Visualizes tracking results in real-time</li>
-            </ul>
-
             <h3>Tasks</h3>
 
             <h4>1. Setup the Package</h4>
-
             <div class="tab-container" data-tab-group="lab3-setup">
                 <div class="tab-buttons">
                     <button class="tab-btn active" data-tab="pixi">Pixi</button>
@@ -531,11 +503,9 @@ source install/setup.bash</code></pre>
             </div>
 
             <h4>2. Download Test Data</h4>
-            <p>Download sample ROS bag files for testing:</p>
             <p><a href="https://drive.google.com/drive/folders/1-IprMRPzJH1ZYo4l7gAOF6wRUGo_Ud4T">Download Test Flight Bags</a></p>
 
             <h4>3. Run the Tag Follower</h4>
-
             <div class="tab-container" data-tab-group="lab3-run">
                 <div class="tab-buttons">
                     <button class="tab-btn active" data-tab="term1">Terminal 1: Node</button>
@@ -544,15 +514,13 @@ source install/setup.bash</code></pre>
                 <div class="tab-content active" data-tab="term1">
                     <div class="code-block">
                         <button class="copy-btn" onclick="copyCode(this)">Copy</button>
-                        <pre><code>source ~/ros_ws/install/setup.bash
-ros2 run tagfollower_ros2 tagfollower_node</code></pre>
+                        <pre><code>ros2 run tagfollower_ros2 tagfollower_node</code></pre>
                     </div>
                 </div>
                 <div class="tab-content" data-tab="term2">
                     <div class="code-block">
                         <button class="copy-btn" onclick="copyCode(this)">Copy</button>
-                        <pre><code>cd ~/ros_ws
-ros2 bag play bags2</code></pre>
+                        <pre><code>ros2 bag play bags2</code></pre>
                     </div>
                 </div>
             </div>
@@ -562,24 +530,6 @@ ros2 bag play bags2</code></pre>
                 <button class="copy-btn" onclick="copyCode(this)">Copy</button>
                 <pre><code>pip3 install rosbags
 rosbags-convert --src ros1_bag.bag --dst ros2_bag_dir</code></pre>
-            </div>
-
-            <div class="important">
-                <strong>Important:</strong> Update <code>ros2_bag_dir/metadata.yaml</code> for custom message types:
-                <div class="code-block">
-                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
-                    <pre><code>topic_metadata:
-  name: /ardrone/navdata
-  type: tagfollower_ros2/msg/Navdata</code></pre>
-                </div>
-            </div>
-
-            <h4>5. Examine Bag Data</h4>
-            <div class="code-block">
-                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
-                <pre><code>ros2 bag info bags2
-ros2 topic list
-ros2 topic info /camera/image_raw</code></pre>
             </div>
 
             <p class="lab-link"><a href="https://github.com/laurent-19/tagfollower_ros2">TagFollower ROS2 Repository →</a></p>
@@ -593,14 +543,12 @@ ros2 topic info /camera/image_raw</code></pre>
                 <h3>Objectives</h3>
                 <ul>
                     <li>Understand 3D point cloud data structures</li>
-                    <li>Process point clouds using PCL (Point Cloud Library)</li>
-                    <li>Implement filtering, segmentation, and feature extraction</li>
+                    <li>Process point clouds using PCL</li>
+                    <li>Implement filtering and segmentation</li>
                 </ul>
             </div>
 
             <h3>Setup</h3>
-            <h4>Install PCL Dependencies</h4>
-
             <div class="tab-container" data-tab-group="lab4-setup">
                 <div class="tab-buttons">
                     <button class="tab-btn active" data-tab="pixi">Pixi</button>
@@ -627,10 +575,7 @@ ros2 topic info /camera/image_raw</code></pre>
                 <button class="copy-btn" onclick="copyCode(this)">Copy</button>
                 <pre><code>cd ~/ros_ws/src
 ros2 pkg create --build-type ament_cmake pcl_processing \
-  --dependencies rclcpp sensor_msgs pcl_conversions
-
-cd ~/ros_ws
-colcon build --packages-select pcl_processing</code></pre>
+  --dependencies rclcpp sensor_msgs pcl_conversions</code></pre>
             </div>
 
             <h4>2. Subscribe to Point Cloud Data</h4>
@@ -646,42 +591,34 @@ colcon build --packages-select pcl_processing</code></pre>
 class PCLNode : public rclcpp::Node {
 public:
     PCLNode() : Node("pcl_node") {
-        subscription_ = this-&gt;create_subscription&lt;sensor_msgs::msg::PointCloud2&gt;(
+        sub_ = create_subscription&lt;sensor_msgs::msg::PointCloud2&gt;(
             "/camera/depth/points", 10,
-            std::bind(&amp;PCLNode::cloud_callback, this, std::placeholders::_1));
+            [this](sensor_msgs::msg::PointCloud2::SharedPtr msg) {
+                pcl::PointCloud&lt;pcl::PointXYZ&gt; cloud;
+                pcl::fromROSMsg(*msg, cloud);
+                RCLCPP_INFO(get_logger(), "Points: %zu", cloud.size());
+            });
     }
-
 private:
-    void cloud_callback(const sensor_msgs::msg::PointCloud2::SharedPtr msg) {
-        pcl::PointCloud&lt;pcl::PointXYZ&gt;::Ptr cloud(
-            new pcl::PointCloud&lt;pcl::PointXYZ&gt;);
-        pcl::fromROSMsg(*msg, *cloud);
-        RCLCPP_INFO(this-&gt;get_logger(), "Cloud: %zu points", cloud-&gt;size());
-    }
-
-    rclcpp::Subscription&lt;sensor_msgs::msg::PointCloud2&gt;::SharedPtr subscription_;
+    rclcpp::Subscription&lt;sensor_msgs::msg::PointCloud2&gt;::SharedPtr sub_;
 };
 
 int main(int argc, char** argv) {
     rclcpp::init(argc, argv);
     rclcpp::spin(std::make_shared&lt;PCLNode&gt;());
     rclcpp::shutdown();
-    return 0;
 }</code></pre>
             </div>
 
-            <h4>3. Implement Voxel Grid Filtering</h4>
+            <h4>3. Voxel Grid Filtering</h4>
             <div class="code-block">
                 <button class="copy-btn" onclick="copyCode(this)">Copy</button>
                 <pre><code>#include &lt;pcl/filters/voxel_grid.h&gt;
 
-pcl::VoxelGrid&lt;pcl::PointXYZ&gt; voxel_filter;
-voxel_filter.setInputCloud(cloud);
-voxel_filter.setLeafSize(0.01f, 0.01f, 0.01f);
-
-pcl::PointCloud&lt;pcl::PointXYZ&gt;::Ptr filtered(
-    new pcl::PointCloud&lt;pcl::PointXYZ&gt;);
-voxel_filter.filter(*filtered);</code></pre>
+pcl::VoxelGrid&lt;pcl::PointXYZ&gt; vg;
+vg.setInputCloud(cloud);
+vg.setLeafSize(0.01f, 0.01f, 0.01f);
+vg.filter(*filtered);</code></pre>
             </div>
 
             <h4>4. Plane Segmentation</h4>
@@ -690,14 +627,10 @@ voxel_filter.filter(*filtered);</code></pre>
                 <pre><code>#include &lt;pcl/segmentation/sac_segmentation.h&gt;
 
 pcl::SACSegmentation&lt;pcl::PointXYZ&gt; seg;
-seg.setOptimizeCoefficients(true);
 seg.setModelType(pcl::SACMODEL_PLANE);
 seg.setMethodType(pcl::SAC_RANSAC);
 seg.setDistanceThreshold(0.01);
 seg.setInputCloud(cloud);
-
-pcl::ModelCoefficients::Ptr coefficients(new pcl::ModelCoefficients);
-pcl::PointIndices::Ptr inliers(new pcl::PointIndices);
 seg.segment(*inliers, *coefficients);</code></pre>
             </div>
 
@@ -706,9 +639,8 @@ seg.segment(*inliers, *coefficients);</code></pre>
                 <button class="copy-btn" onclick="copyCode(this)">Copy</button>
                 <pre><code>ros2 run rviz2 rviz2</code></pre>
             </div>
-            <p>Add a <strong>PointCloud2</strong> display and set the topic to your processed cloud topic.</p>
 
-            <h3>Additional Resources</h3>
+            <h3>Resources</h3>
             <ul>
                 <li><a href="https://pointclouds.org/documentation/tutorials/">PCL Tutorials</a></li>
                 <li><a href="https://docs.ros.org/en/humble/Tutorials/Intermediate/RViz/RViz-User-Guide/RViz-User-Guide.html">RViz User Guide</a></li>
@@ -724,34 +656,26 @@ seg.segment(*inliers, *coefficients);</code></pre>
     </footer>
 
     <script>
-        // Tab functionality
         document.querySelectorAll('.tab-container').forEach(container => {
-            const buttons = container.querySelectorAll('.tab-btn');
-            const contents = container.querySelectorAll('.tab-content');
+            const buttons = container.querySelectorAll(':scope > .tab-buttons > .tab-btn');
+            const contents = container.querySelectorAll(':scope > .tab-content');
 
             buttons.forEach(button => {
                 button.addEventListener('click', () => {
                     const tab = button.dataset.tab;
-
                     buttons.forEach(b => b.classList.remove('active'));
                     contents.forEach(c => c.classList.remove('active'));
-
                     button.classList.add('active');
-                    container.querySelector(`.tab-content[data-tab="${tab}"]`).classList.add('active');
+                    container.querySelector(`:scope > .tab-content[data-tab="${tab}"]`).classList.add('active');
                 });
             });
         });
 
-        // Copy to clipboard
         function copyCode(button) {
-            const codeBlock = button.parentElement.querySelector('code');
-            const text = codeBlock.textContent;
-
-            navigator.clipboard.writeText(text).then(() => {
+            const code = button.parentElement.querySelector('code').textContent;
+            navigator.clipboard.writeText(code).then(() => {
                 button.textContent = 'Copied!';
-                setTimeout(() => {
-                    button.textContent = 'Copy';
-                }, 2000);
+                setTimeout(() => button.textContent = 'Copy', 2000);
             });
         }
     </script>
