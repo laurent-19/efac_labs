@@ -5,9 +5,16 @@ This lab introduces you to the development environment and fundamental tools use
 
 ## Tasks
 1. Familiarize yourself with the useful resources listed below.
-2. Complete the [ROS2 Beginner: Client Libraries Tutorials](https://docs.ros.org/en/humble/Tutorials/Beginner-Client-Libraries.html).
+2. Complete the [ROS2 Beginner: Client Libraries Tutorials](https://docs.ros.org/en/humble/Tutorials/Beginner-Client-Libraries.html), starting with [Writing a Simple Publisher and Subscriber (C++)](https://docs.ros.org/en/humble/Tutorials/Beginner-Client-Libraries/Writing-A-Simple-Cpp-Publisher-And-Subscriber.html).
 
 ![ROS2 Beginner Client Libraries](../lab2/tutorial_ros.png)
+
+> **Note:** To edit files inside the Docker container, use `nano`:
+> ```bash
+> nano <filename>
+> ```
+> - `Ctrl + S` to save
+> - `Ctrl + X` to exit
 
 ## Preliminaries
 
