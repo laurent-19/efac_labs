@@ -2,8 +2,6 @@
 
 Welcome to the lab workspace! Below is an overview of the resources and tasks to help you get started.
 
-**📚 Full Documentation: [https://laurent-19.github.io/efac_labs](https://laurent-19.github.io/efac_labs)**
-
 ## Useful Resources
 The following tools and technologies are essential for the labs:
 - **Version Control**: [SVN Cheat Sheet](https://cheatography.com/davechild/cheat-sheets/subversion/)
@@ -12,17 +10,17 @@ The following tools and technologies are essential for the labs:
 - **Project Management**: [GanttProject](https://www.ganttproject.biz/)
 - **Build System**: [CMake](https://cmake.org/)
 - **Robotics Framework**: [ROS](https://ros.org/) ([ROS 2 Humble](https://docs.ros.org/en/humble/index.html))
-- **ROS2 Setup**: Pixi (recommended), Docker, or VM (refer to [Lab 2 - Preliminaries](https://github.com/laurent-19/efac_labs/blob/main/LAB2.md#preliminaries))
+- **ROS2 Setup**: Docker (recommended) or VM (refer to [Lab 1](doc/lab1/README.md))
 
 ## Lab Tasks Overview
 
 ### Lab 1: Introduction to Tools and Frameworks
-- Familiarize yourself with the useful resources listed above.
-- Complete the [ROS Tutorials](https://docs.ros.org/en/humble/Tutorials.html) (Beginner Level).
+Refer to the [Lab 1 Documentation](doc/lab1/README.md) for detailed instructions.
+
 ### Note on ROS Versions
 
 - For **ROS 1**, refer to this [documentation](https://sites.google.com/view/utcn-efac/labs).
-- For **ROS 2**, use the current documentation. Setup options include Pixi (recommended), Docker, or the Ubuntu ROS 2 virtual machine—see [Lab 2 Preliminaries](https://github.com/laurent-19/efac_labs/blob/main/LAB2.md#preliminaries). 
+- For **ROS 2**, use the current documentation. Setup options include Docker (recommended) or the Ubuntu ROS 2 virtual machine—see [Lab 1](doc/lab1/README.md).
 
 **!!** This repository uses the **ROS 2** framework.
 
