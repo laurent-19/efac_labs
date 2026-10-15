@@ -194,10 +194,16 @@ If you prefer not to use WSL, you can use a pre-configured virtual machine.
 
 1. Open VirtualBox
 2. Go to `File` > `Import Appliance`
+
+   ![Import Appliance](../lab2/import_app.png)
+
 3. Select the `.ova` file you downloaded
 4. Configure the appliance settings:
    - Set **2 CPUs** (if your system supports it)
    - Allocate at least **4096MB RAM** (default 2048MB may work, but ROS2 nodes might lag or crash)
+
+   ![Appliance Settings](../lab2/app_settings.png)
+
 5. Click 'Finish' to complete the import
 6. Click 'Start' to launch the VM
 
