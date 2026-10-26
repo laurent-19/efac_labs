@@ -1,0 +1,15 @@
+# CodeRun EASY - goal poses, in the world frame (metres, degrees, yaw 0 = +x, CCW positive).
+# The robot starts at `start`; /odom starts at this pose too.
+# Visit the goals IN ORDER: a goal counts when the robot is within `goal_radius` of it
+# AND its heading is within `yaw_tolerance_deg` of the goal yaw.
+# Read by: students (template), the scorer, tools/gen_maps.py.
+world_size: 12.0
+start: {x: -5.0, y: -5.0, yaw_deg: 0.0}
+goal_radius: 0.3
+yaw_tolerance_deg: 20.0
+goals:
+  - {x: 0.0, y: -5.0, yaw_deg: 0.0}
+  - {x: 0.0, y: 0.0, yaw_deg: 90.0}
+  - {x: 4.0, y: 0.0, yaw_deg: 0.0}
+  - {x: 4.0, y: 4.0, yaw_deg: 90.0}
+  - {x: -4.0, y: 4.0, yaw_deg: 180.0}

@@ -10,6 +10,8 @@ Arguments:
     gui         show the Stage window (false = headless, for grading)
     time_limit  seconds before the run is cut off (default 1200)
     result_file where the JSON result is written
+
+Start pose and goals come from config/<task>_goals.yaml (read by the scorer).
 """
 
 import os
@@ -22,21 +24,15 @@ from launch.events import Shutdown
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 
-# per-task scorer configuration (must match worlds/*.world and tools/gen_maps.py)
-TASKS = {
-    'easy': dict(world_size=12.0, start=[-5.0, -5.0],
-                 waypoints=[4.0, -4.0, 4.0, 4.0, -4.0, 4.0]),
-    'hard': dict(world_size=16.0, start=[-6.0, -6.0], waypoints=[0.0, 0.0]),
-}
+TASKS = ('easy', 'hard')
 
 
 def _setup(context):
     share = get_package_share_directory('coderun_challenge')
     task = LaunchConfiguration('task').perform(context)
     if task not in TASKS:
-        raise RuntimeError(f"task must be one of {list(TASKS)}, got '{task}'")
+        raise RuntimeError(f"task must be one of {TASKS}, got '{task}'")
     gui = LaunchConfiguration('gui').perform(context).lower() == 'true'
-    cfg = TASKS[task]
 
     stage = Node(
         package='stage_ros2', executable='stage_ros2', name='stage', output='screen',
@@ -52,7 +48,6 @@ def _setup(context):
             'team': LaunchConfiguration('team').perform(context),
             'time_limit': float(LaunchConfiguration('time_limit').perform(context)),
             'result_file': LaunchConfiguration('result_file').perform(context),
-            **cfg,
         }])
     # when the scorer is done (task finished / time out) take the whole launch down
     stop = RegisterEventHandler(OnProcessExit(

@@ -1,0 +1,12 @@
+# CodeRun HARD - goal poses, same format and rules as easy_goals.yaml.
+# The arena has staggered walls: a straight line to the next goal is blocked, so a path
+# around the walls has to be planned.
+world_size: 12.0
+start: {x: -5.0, y: -5.2, yaw_deg: 0.0}
+goal_radius: 0.3
+yaw_tolerance_deg: 20.0
+goals:
+  - {x: 4.5, y: -4.5, yaw_deg: 90.0}
+  - {x: 4.5, y: -0.5, yaw_deg: 180.0}
+  - {x: -4.5, y: 2.2, yaw_deg: 90.0}
+  - {x: -4.5, y: 5.0, yaw_deg: 180.0}
