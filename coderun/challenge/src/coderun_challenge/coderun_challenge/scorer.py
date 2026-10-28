@@ -29,6 +29,7 @@ from ament_index_python.packages import get_package_share_directory
 from nav_msgs.msg import Odometry
 from PIL import Image
 from rclpy.node import Node
+from rclpy.parameter import Parameter
 from scipy import ndimage
 
 RES = 0.02            # bitmap resolution (m / px), must match the world files
@@ -58,6 +59,8 @@ class Scorer(Node):
         self.declare_parameter('team', 'unnamed')
         self.declare_parameter('time_limit', 1200.0)      # seconds (20 min)
         self.declare_parameter('goals_file', '')
+        self.declare_parameter('goals', Parameter.Type.DOUBLE_ARRAY)   # [x, y, yaw_rad, ...] of this run
+        self.declare_parameter('seed', '')
         self.declare_parameter('bitmap', '')
         self.declare_parameter('result_file', '/tmp/coderun_result.json')
 
@@ -72,9 +75,19 @@ class Scorer(Node):
         goals_file = self.get_parameter('goals_file').value or f'{share}/config/{self.mode}_goals.yaml'
         cfg = yaml.safe_load(Path(goals_file).read_text())
         self.size = float(cfg['world_size'])
+        # map centre in the start frame (the frame of the goals and of /ground_truth)
+        self.ox = float(cfg['map_origin']['x'])
+        self.oy = float(cfg['map_origin']['y'])
         self.radius = float(cfg['goal_radius'])
         self.yaw_tol = math.radians(cfg['yaw_tolerance_deg'])
-        self.goals = [(g['x'], g['y'], math.radians(g['yaw_deg'])) for g in cfg['goals']]
+        # goals of THIS run (random ones included) come from the launch file; without them only
+        # the static goals of the YAML are used
+        flat = list(self.get_parameter('goals').value or [])
+        if flat:
+            self.goals = [tuple(flat[i:i + 3]) for i in range(0, len(flat), 3)]
+        else:
+            self.goals = [(g['x'], g['y'], math.radians(g['yaw_deg'])) for g in cfg['goals']]
+        self.seed = self.get_parameter('seed').value
 
         bitmap = self.get_parameter('bitmap').value or f'{share}/bitmaps/{self.mode}.png'
         occ = np.array(Image.open(bitmap).convert('L')) < 128
@@ -94,8 +107,8 @@ class Scorer(Node):
 
     # ----------------------------------------------------------- helpers ---
     def _wall_dist(self, x, y):
-        c = int((x + self.size / 2) / RES)
-        r = int((self.size / 2 - y) / RES)
+        c = int((x - self.ox + self.size / 2) / RES)
+        r = int((self.size / 2 - (y - self.oy)) / RES)
         if not (0 <= r < self.dist.shape[0] and 0 <= c < self.dist.shape[1]):
             return 0.0
         return float(self.dist[r, c])
@@ -122,10 +135,14 @@ class Scorer(Node):
     def on_gt(self, msg):
         if self.finished:
             return
-        stamp = msg.header.stamp.sec + msg.header.stamp.nanosec * 1e-9
+        # Stage publishes ground_truth for ALL models; filter by the robot's frame
+        if 'robot' not in msg.child_frame_id:
+            return
+        # use wall clock time (Stage's sim time persists between runs)
+        now = self.get_clock().now().nanoseconds * 1e-9
         if self.t0 is None:
-            self.t0 = stamp
-        elapsed = stamp - self.t0
+            self.t0 = now
+        elapsed = now - self.t0
         p = msg.pose.pose
         x, y, yaw = p.position.x, p.position.y, yaw_of(p.orientation)
 
@@ -163,6 +180,8 @@ class Scorer(Node):
         result = {
             'team': self.team,
             'mode': self.mode,
+            'seed': self.seed,
+            'goals': [[round(x, 2), round(y, 2), round(math.degrees(a))] for x, y, a in self.goals],
             'completed': bool(done),
             'elapsed_s': round(elapsed, 1),
             'collisions': self.collisions,

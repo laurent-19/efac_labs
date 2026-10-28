@@ -13,7 +13,7 @@ setup(
         ('share/' + package_name, ['package.xml']),
         ('share/' + package_name + '/launch', glob('launch/*.py')),
         ('share/' + package_name + '/config', glob('config/*.yaml')),
-        ('share/' + package_name + '/worlds', glob('worlds/*.world')),
+        ('share/' + package_name + '/rviz', glob('rviz/*.rviz')),
         ('share/' + package_name + '/worlds/include', glob('worlds/include/*.inc')),
         ('share/' + package_name + '/bitmaps', glob('bitmaps/*.png')),
     ],
@@ -26,6 +26,7 @@ setup(
     entry_points={
         'console_scripts': [
             'scorer = coderun_challenge.scorer:main',
+            'goal_server = coderun_challenge.goal_server:main',
         ],
     },
 )

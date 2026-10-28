@@ -5,29 +5,34 @@ TASK: the judge gives you a list of goal poses (x, y, yaw). Make the robot reach
 IN ORDER, as FAST as you can, without touching anything. A goal counts when the robot is
 within 0.3 m of it AND its heading is within 20 deg of the goal yaw.
 
-You have:
-    /odom       nav_msgs/Odometry       robot pose estimate (starts at the START pose)
-    /base_scan  sensor_msgs/LaserScan   270 deg field of view, 1 deg steps, 5 m range
-and you publish:
-    /cmd_vel    geometry_msgs/Twist     linear.x <= 1.0 m/s, angular.z <= 0.78 rad/s
+The goals are RANDOM at every run (in EASY only the last one, in HARD all of them), so you
+must read them at runtime - hardcoded positions will not work.
 
-The goal poses are in config/<task>_goals.yaml of the `coderun_challenge` package
-(world frame, metres / degrees). Look at the map, then decide on waypoints / a path
-that gets you from goal to goal.
+You have:
+    /goals      geometry_msgs/PoseArray  the goal poses, in order (latched / transient local)
+    /map        nav_msgs/OccupancyGrid   the arena, 0.04 m cells, 100 = wall (latched)
+    /odom       nav_msgs/Odometry        robot pose estimate (starts at (0, 0, 0))
+    /base_scan  sensor_msgs/LaserScan    270 deg field of view, 1 deg steps, 5 m range
+and you publish:
+    /cmd_vel    geometry_msgs/Twist      linear.x <= 1.0 m/s, angular.z <= 0.78 rad/s
+
+/goals, /map and /odom are all in the same frame (the robot starts at its origin).
+/ground_truth is for the judge only - do not rely on it.
+
+Look at the goals and at the map, then decide on waypoints / a path that gets you from goal
+to goal around the walls. In HARD a straight line to the next goal is blocked.
 
 Run it with:
-    ros2 run coderun_student solution --ros-args -p task:=easy
+    ros2 run coderun_student solution
 """
 
 import math
-from pathlib import Path
 
 import rclpy
-import yaml
-from ament_index_python.packages import get_package_share_directory
-from geometry_msgs.msg import Twist
-from nav_msgs.msg import Odometry
+from geometry_msgs.msg import PoseArray, Twist
+from nav_msgs.msg import OccupancyGrid, Odometry
 from rclpy.node import Node
+from rclpy.qos import DurabilityPolicy, QoSProfile, ReliabilityPolicy
 from sensor_msgs.msg import LaserScan
 
 
@@ -43,23 +48,31 @@ def wrap(a):
 class SolutionNode(Node):
     def __init__(self):
         super().__init__('solution_node')
-        self.declare_parameter('task', 'easy')
-        task = self.get_parameter('task').value
-        cfg_path = Path(get_package_share_directory('coderun_challenge')) / 'config' / f'{task}_goals.yaml'
-        cfg = yaml.safe_load(cfg_path.read_text())
-        # list of (x, y, yaw in radians)
-        self.goals = [(g['x'], g['y'], math.radians(g['yaw_deg'])) for g in cfg['goals']]
-
+        # /goals and /map are published once and latched: ask for transient-local durability
+        latched = QoSProfile(depth=1, durability=DurabilityPolicy.TRANSIENT_LOCAL,
+                             reliability=ReliabilityPolicy.RELIABLE)
         self.cmd_pub = self.create_publisher(Twist, 'cmd_vel', 10)
+        self.create_subscription(PoseArray, 'goals', self.goals_callback, latched)
+        self.create_subscription(OccupancyGrid, 'map', self.map_callback, latched)
         self.create_subscription(LaserScan, 'base_scan', self.scan_callback, 10)
         self.create_subscription(Odometry, 'odom', self.odom_callback, 10)
         self.create_timer(0.1, self.control_loop)          # 10 Hz
 
+        self.goals = None          # list of (x, y, yaw in radians), in order
+        self.map = None            # nav_msgs/OccupancyGrid
         self.scan = None
         self.x = self.y = self.yaw = 0.0
+        self.waypoints = None
 
-        # TODO: turn self.goals into a list of waypoints (intermediate points, if needed)
-        self.waypoints = list(self.goals)
+    def goals_callback(self, msg):
+        self.goals = [(p.position.x, p.position.y, yaw_from_quaternion(p.orientation)) for p in msg.poses]
+        self.get_logger().info(f'received {len(self.goals)} goals')
+
+    def map_callback(self, msg):
+        # msg.data[row * msg.info.width + col] is 100 for a wall, 0 for free space.
+        # Cell (row, col) covers x in msg.info.origin.position.x + col * msg.info.resolution (+ one cell)
+        # and y likewise with row. Row 0 is the lowest y.
+        self.map = msg
 
     def scan_callback(self, msg):
         # msg.ranges[i] is the distance at angle msg.angle_min + i * msg.angle_increment
@@ -73,6 +86,15 @@ class SolutionNode(Node):
 
     def control_loop(self):
         cmd = Twist()
+        if self.goals is None or self.map is None:
+            self.cmd_pub.publish(cmd)          # wait for the goals and the map
+            return
+
+        if self.waypoints is None:
+            # TODO: turn self.goals (and self.map) into a list of waypoints: intermediate
+            #       points that lead around the walls from one goal to the next
+            self.waypoints = list(self.goals)
+
         # TODO: compute the velocity that follows self.waypoints
         #       (turn towards the next waypoint, drive, turn to the goal yaw, ...)
         cmd.linear.x = 0.0

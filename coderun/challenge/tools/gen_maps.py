@@ -1,39 +1,48 @@
 """
-Generate the CodeRun arena bitmaps (deterministic) and check them against the goal files.
+Generate the CodeRun arena bitmaps (deterministic) and stress-test the random goals.
+
+Frames
+  * map frame   : centre of the bitmap = (0, 0). Obstacles below are drawn in it.
+  * start frame : the robot starts at (0, 0, 0); /odom, /ground_truth, /goals and /map are in
+                  it. start = map - map_origin, `map_origin` (in config/*_goals.yaml) being the
+                  map centre expressed in the start frame.
 
 Stage reads dark pixels as obstacles. Resolution is 0.02 m/px, image row 0 is the top of
-the world (+y), column 0 is the left (-x). The scorer reads the very same PNGs to detect
-collisions, and the very same config/*_goals.yaml for start and goals.
+the map (+y), column 0 is the left (-x). The scorer reads the very same PNGs.
+
+The world files are NOT generated here: the goals are random, so the launch file writes the
+world (with the goal markers) at every launch (coderun_challenge/worldgen.py).
 
 Checks (the script fails loudly if one is violated):
-  * start and every goal are free and connected, in order (robot radius inflation)
-  * every goal pose is at least GOAL_CLEARANCE from any wall
-  * the reference route stays at least ROUTE_CLEARANCE from any wall
+  * the start yaw is 0 (the floorplan is only translated)
+  * static goals are free, away from walls and connected, in order
+  * for SEEDS random seeds: goals are sampled under the rules (clearance, reachable, separation,
+    blocked line for HARD, clear x-then-y route for EASY) and the reference planner finds a
+    route to every goal
 
 Usage:
-    python3 tools/gen_maps.py          # writes src/coderun_challenge/bitmaps/*.png
+    python3 tools/gen_maps.py [--seeds N]   # writes bitmaps/*.png, then runs the checks
 """
 
+import argparse
+import math
 import sys
-from collections import deque
 from pathlib import Path
 
 import numpy as np
 import yaml
 from PIL import Image, ImageDraw
-from scipy import ndimage
 
 RES = 0.02              # m / pixel
 WALL = 0.2              # wall thickness (m)
-ROBOT_R = 0.30          # inflation used for the reachability checks (m)
 GOAL_CLEARANCE = 0.5    # goals must be this far from any wall (m)
-ROUTE_CLEARANCE = 0.45  # reference route must stay this far from any wall (m)
 
 ROOT = Path(__file__).resolve().parent.parent
 PKG = ROOT / 'src' / 'coderun_challenge'
-OUT = PKG / 'bitmaps'
 sys.path.insert(0, str(ROOT / 'reference'))
-from routes import HARD_ROUTE, manhattan_route  # noqa: E402
+sys.path.insert(0, str(PKG))
+from coderun_challenge import sampler  # noqa: E402
+from routes import manhattan_route, plan_route  # noqa: E402
 
 
 class Arena:
@@ -61,65 +70,73 @@ class Arena:
     def hwall(self, y, x0, x1):
         self.rect((x0 + x1) / 2, y, x1 - x0, WALL)
 
-    def save(self, name):
-        OUT.mkdir(parents=True, exist_ok=True)
-        self.img.save(OUT / name)
-
-    # -- analysis ----------------------------------------------------------
-    def dist(self):
-        occ = np.array(self.img) < 128
-        return ndimage.distance_transform_edt(~occ) * RES
-
-    def wall_dist(self, d, x, y):
-        c, r = self.to_px(x, y)
-        return float(d[int(r), int(c)])
-
-    def reachable(self, d, start_xy):
-        free = d > ROBOT_R
-        c, r = self.to_px(*start_xy)
-        c, r = int(c), int(r)
-        assert free[r, c], f'start/goal {start_xy} is not free'
-        seen = np.zeros_like(free)
-        q = deque([(r, c)])
-        seen[r, c] = True
-        while q:
-            y, x = q.popleft()
-            for dy, dx in ((1, 0), (-1, 0), (0, 1), (0, -1)):
-                ny, nx = y + dy, x + dx
-                if 0 <= ny < free.shape[0] and 0 <= nx < free.shape[1] and free[ny, nx] and not seen[ny, nx]:
-                    seen[ny, nx] = True
-                    q.append((ny, nx))
-        return seen
+    def save(self, task):
+        out = PKG / 'bitmaps'
+        out.mkdir(parents=True, exist_ok=True)
+        self.img.save(out / f'{task}.png')
 
 
 def load(task):
-    return yaml.safe_load((PKG / 'config' / f'{task}_goals.yaml').read_text())
+    cfg = yaml.safe_load((PKG / 'config' / f'{task}_goals.yaml').read_text())
+    assert abs(cfg['start']['x']) + abs(cfg['start']['y']) + abs(cfg['start']['yaw_deg']) == 0, \
+        f'{task}: the start pose must be (0, 0, 0) in the start frame'
+    return cfg
 
 
-def check(arena, task, cfg, route):
-    d = arena.dist()
-    start = (cfg['start']['x'], cfg['start']['y'])
-    pts = [start] + [(g['x'], g['y']) for g in cfg['goals']]
-    for p, q in zip(pts, pts[1:]):
-        seen = arena.reachable(d, p)
-        c, r = arena.to_px(*q)
-        assert seen[int(r), int(c)], f'{task}: {p} -> {q} not connected'
-    for g in cfg['goals']:
-        w = arena.wall_dist(d, g['x'], g['y'])
-        assert w >= GOAL_CLEARANCE, f"{task}: goal {g} only {w:.2f} m from a wall"
-    prev = start
-    for x, y, _ in route:
-        n = int(max(abs(x - prev[0]), abs(y - prev[1])) / 0.05) + 1
-        for t in np.linspace(0, 1, n):
-            px, py = prev[0] + t * (x - prev[0]), prev[1] + t * (y - prev[1])
-            w = arena.wall_dist(d, px, py)
-            assert w >= ROUTE_CLEARANCE, f'{task}: reference route {w:.2f} m from a wall at ({px:.2f}, {py:.2f})'
-        prev = (x, y)
-    print(f'{task}: ok ({len(cfg["goals"])} goals, route of {len(route)} legs)')
+def planner_grid(task, cfg):
+    """The /map the students get (0.04 m cells, row 0 = lowest y) and its origin."""
+    occ = np.array(Image.open(PKG / 'bitmaps' / f'{task}.png').convert('L')) < 128
+    f = 2
+    h, w = occ.shape[0] // f * f, occ.shape[1] // f * f
+    occ = np.flipud(occ[:h, :w].reshape(h // f, f, w // f, f).max(axis=(1, 3)))
+    s = cfg['world_size']
+    return occ, RES * f, (cfg['map_origin']['x'] - s / 2, cfg['map_origin']['y'] - s / 2)
+
+
+def check(task, cfg, seeds):
+    bitmap = str(PKG / 'bitmaps' / f'{task}.png')
+    grid = sampler.MapGrid(bitmap, cfg['world_size'], (cfg['map_origin']['x'], cfg['map_origin']['y']))
+
+    # static goals
+    prev = (0.0, 0.0)
+    for g in cfg.get('goals') or []:
+        p = (g['x'], g['y'])
+        assert grid.connected(prev, p), f'{task}: static goal {p} not connected to {prev}'
+        w = grid.wall_dist(*p)
+        assert w >= GOAL_CLEARANCE, f'{task}: static goal {g} only {w:.2f} m from a wall'
+        prev = p
+
+    # random goals: sample, re-verify independently, plan with the reference planner
+    occ, res, origin = planner_grid(task, cfg)
+    lengths = []
+    for seed in range(seeds):
+        goals = sampler.sample_goals(cfg, bitmap, seed)
+        assert len(goals) == len(cfg.get('goals') or []) + int(cfg.get('random_goals', 0))
+        xy = [(g['x'], g['y']) for g in goals]
+        pts = [(0.0, 0.0)] + xy
+        for a, b in zip(pts, pts[1:]):
+            assert grid.connected(a, b), f'{task} seed {seed}: {b} not connected to {a}'
+            assert grid.wall_dist(*b) >= GOAL_CLEARANCE, f'{task} seed {seed}: goal {b} too close to a wall'
+        rules = cfg.get('sampling') or {}
+        if rules.get('manhattan'):
+            r = manhattan_route((0.0, 0.0), xy)
+            prev = (0.0, 0.0)
+            for x, y, _ in r:
+                assert grid.segment_min_dist(prev, (x, y)) >= sampler.MANHATTAN_CLEARANCE, \
+                    f'{task} seed {seed}: x-then-y route too close to a wall near {(x, y)}'
+                prev = (x, y)
+        route = plan_route(occ, res, origin, (0.0, 0.0), xy)
+        length, prev = 0.0, (0.0, 0.0)
+        for x, y, _ in route:
+            length += math.hypot(x - prev[0], y - prev[1])
+            prev = (x, y)
+        lengths.append(length)
+    print(f'{task}: ok - static goals fine, {seeds} random seeds sampled and planned '
+          f'(route length {min(lengths):.0f}-{max(lengths):.0f} m, mean {sum(lengths) / len(lengths):.0f} m)')
 
 
 # ---------------------------------------------------------------------------
-# EASY: sparse obstacles, kept away from the axis-aligned (x then y) routes
+# EASY: sparse obstacles (map frame), kept away from the axis-aligned (x then y) routes
 # ---------------------------------------------------------------------------
 EASY_OBSTACLES = [  # cx, cy, w, h
     (-3.0, -2.0, 1.0, 1.0),
@@ -136,13 +153,12 @@ def make_easy():
     a.border()
     for o in EASY_OBSTACLES:
         a.rect(*o)
-    start = (cfg['start']['x'], cfg['start']['y'])
-    check(a, 'easy', cfg, manhattan_route(start, cfg['goals']))
-    a.save('easy.png')
+    a.save('easy')
+    return cfg
 
 
 # ---------------------------------------------------------------------------
-# HARD: staggered walls (gaps alternate right / left / right) and a few pillars
+# HARD: staggered walls (gaps alternate right / left / right) and a few pillars (map frame)
 # ---------------------------------------------------------------------------
 HARD_WALLS = [  # y, x0, x1
     (-2.5, -5.9, 3.0),   # gap on the right
@@ -160,11 +176,15 @@ def make_hard():
         a.hwall(y, x0, x1)
     for p in HARD_PILLARS:
         a.rect(*p)
-    check(a, 'hard', cfg, HARD_ROUTE)
-    a.save('hard.png')
+    a.save('hard')
+    return cfg
 
 
 if __name__ == '__main__':
-    make_easy()
-    make_hard()
-    print('bitmaps written to', OUT)
+    ap = argparse.ArgumentParser()
+    ap.add_argument('--seeds', type=int, default=30, help='random seeds to stress-test per task')
+    args = ap.parse_args()
+    easy, hard = make_easy(), make_hard()
+    check('easy', easy, args.seeds)
+    check('hard', hard, args.seeds)
+    print('bitmaps written to', PKG / 'bitmaps')

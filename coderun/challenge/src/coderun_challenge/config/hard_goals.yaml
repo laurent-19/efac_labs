@@ -1,12 +1,14 @@
-# CodeRun HARD - goal poses, same format and rules as easy_goals.yaml.
-# The arena has staggered walls: a straight line to the next goal is blocked, so a path
-# around the walls has to be planned.
+# CodeRun HARD - goal configuration, same frame and rules as easy_goals.yaml.
+# All goals are random (sampled at launch): they cannot be hardcoded. Each random goal is
+# reachable, away from walls, and NOT in a straight line of sight from the previous goal
+# (a path around the staggered walls must be planned, e.g. A* on the /map topic).
 world_size: 12.0
-start: {x: -5.0, y: -5.2, yaw_deg: 0.0}
+map_origin: {x: 5.0, y: 5.2}
+start: {x: 0.0, y: 0.0, yaw_deg: 0.0}
 goal_radius: 0.3
 yaw_tolerance_deg: 20.0
-goals:
-  - {x: 4.5, y: -4.5, yaw_deg: 90.0}
-  - {x: 4.5, y: -0.5, yaw_deg: 180.0}
-  - {x: -4.5, y: 2.2, yaw_deg: 90.0}
-  - {x: -4.5, y: 5.0, yaw_deg: 180.0}
+goals: []
+random_goals: 4
+sampling:
+  min_separation: 3.0   # m from the previous goal
+  blocked_line: true    # the straight line from the previous goal must be blocked by a wall

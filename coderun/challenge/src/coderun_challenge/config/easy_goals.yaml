@@ -1,15 +1,26 @@
-# CodeRun EASY - goal poses, in the world frame (metres, degrees, yaw 0 = +x, CCW positive).
-# The robot starts at `start`; /odom starts at this pose too.
+# CodeRun EASY - goal configuration (metres, degrees, yaw 0 = +x, CCW positive).
+#
+# Frame: the robot starts at (0, 0, 0). /odom and /ground_truth both start there, and all
+# poses (goals, /goals, /map) are in that frame. `map_origin` is where the centre of the
+# map is in that frame (the map is shifted, not the robot).
+#
+# `goals` are the STATIC goals. `random_goals` more goals are appended at every launch,
+# sampled from a seed (launch argument `seed`, random by default) under the `sampling` rules.
+# The complete list is what students receive on /goals - they must not hardcode it.
+#
 # Visit the goals IN ORDER: a goal counts when the robot is within `goal_radius` of it
 # AND its heading is within `yaw_tolerance_deg` of the goal yaw.
-# Read by: students (template), the scorer, tools/gen_maps.py.
 world_size: 12.0
-start: {x: -5.0, y: -5.0, yaw_deg: 0.0}
+map_origin: {x: 5.0, y: 5.0}
+start: {x: 0.0, y: 0.0, yaw_deg: 0.0}
 goal_radius: 0.3
 yaw_tolerance_deg: 20.0
 goals:
-  - {x: 0.0, y: -5.0, yaw_deg: 0.0}
-  - {x: 0.0, y: 0.0, yaw_deg: 90.0}
-  - {x: 4.0, y: 0.0, yaw_deg: 0.0}
-  - {x: 4.0, y: 4.0, yaw_deg: 90.0}
-  - {x: -4.0, y: 4.0, yaw_deg: 180.0}
+  - {x: 5.0, y: 0.0, yaw_deg: 0.0}
+  - {x: 5.0, y: 5.0, yaw_deg: 90.0}
+  - {x: 9.0, y: 5.0, yaw_deg: 0.0}
+  - {x: 9.0, y: 9.0, yaw_deg: 90.0}
+random_goals: 1
+sampling:
+  min_separation: 3.0   # m from the previous goal
+  manhattan: true      # x-then-y route from the previous goal must be clear (simple reference works)
