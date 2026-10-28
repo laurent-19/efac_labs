@@ -135,9 +135,6 @@ class Scorer(Node):
     def on_gt(self, msg):
         if self.finished:
             return
-        # Stage publishes ground_truth for ALL models; filter by the robot's frame
-        if 'robot' not in msg.child_frame_id:
-            return
         # use wall clock time (Stage's sim time persists between runs)
         now = self.get_clock().now().nanoseconds * 1e-9
         if self.t0 is None:
